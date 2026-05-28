@@ -1,0 +1,77 @@
+---
+name: cleanreview
+description: Start two clean-context review subagents in parallel and return both reviews
+argument-hint: <scope in Prosa, z.B. "uncommitted", "branch", "letzten 3 commits", "seit 10.04.2026", "PR 42">
+---
+
+Starte über Pi zwei frische Subagenten parallel mit dem `subagent`-Tool. Beide führen denselben Review-Auftrag aus: den Pi-Skill `/skill:review <scope>`.
+
+- `<scope>` sind die User-Argumente, die Pi nach dem Skill-Aufruf an diese Skill-Anweisung angehängt hat.
+- Leere Argumente → `uncommitted` als Default.
+- Beide Subagent-Prompts müssen `Antworte auf Deutsch.` enthalten.
+- Nutze für beide Subagenten `context: "fresh"`. Die Subagenten erhalten keinerlei Zusatzkontext: weder Ziel oder Motivation der Änderungen, noch Begründungen, Vorannahmen oder Hinweise auf erwartete Ergebnisse. Das Review soll unvoreingenommen auf Basis des Codes selbst erfolgen.
+- Nutze das `subagent`-Tool im Parallel-Modus mit genau zwei Tasks und `concurrency: 2`.
+- Verwende als Agent jeweils `delegate`.
+- Verwende diese Modell-Overrides mit Thinking-Level `xhigh` über den Modell-Suffix `:<thinking>`:
+  - GPT-Review: `model: "openai-codex/gpt-5.5:xhigh"`
+  - Opus-Review: `model: "anthropic/claude-opus-4-7:xhigh"`
+
+## Subagent-Prompts
+
+GPT-Review:
+
+```text
+Antworte auf Deutsch.
+Führe `/skill:review <scope>` aus.
+```
+
+Opus-Review:
+
+```text
+Antworte auf Deutsch.
+Führe `/skill:review <scope>` aus.
+```
+
+Ersetze `<scope>` jeweils durch den ermittelten Scope-Text (`uncommitted`, falls leer).
+
+## Ausgabe an den User
+
+Jeder `/skill:review`-Subagent rahmt seinen Output mit `===BEGIN REVIEW===` / `===END REVIEW===` ein.
+
+Gib dem Aufrufer eine einzige zusammengeführte Antwort zurück. Die Antwort besteht aus den beiden Reviews klar getrennt hintereinander, in dieser Reihenfolge:
+
+1. GPT-Review (`openai-codex/gpt-5.5:xhigh`)
+2. Opus-Review (`anthropic/claude-opus-4-7:xhigh`)
+
+Format:
+
+```markdown
+## Review 1 — GPT-5.5 xhigh (`openai-codex/gpt-5.5:xhigh`)
+<kompletter Output des GPT-Subagenten inklusive ===BEGIN REVIEW=== und ===END REVIEW===, byte-genau kopiert>
+
+## Review 2 — Opus 4.7 xhigh (`anthropic/claude-opus-4-7:xhigh`)
+<kompletter Output des Opus-Subagenten inklusive ===BEGIN REVIEW=== und ===END REVIEW===, byte-genau kopiert>
+```
+
+Kopiere die Subagent-Outputs byte-genau: Whitespace, Markdown, Code-Blöcke, Backticks, Umlaute — alles exakt wie vom jeweiligen Subagenten geliefert. Nur die beiden Überschriften und die Leerzeile zwischen den Reviews werden ergänzt.
+
+## Fehlerbehandlung
+
+Wenn ein Subagent fehlschlägt, Marker fehlen oder der Bereich zwischen den Markern leer ist, gib trotzdem das Ergebnis des anderen Subagenten zurück. Ersetze nur den betroffenen Review-Block durch einen klar markierten Fehlerblock:
+
+```markdown
+## Review N — <Modellname> (`<Modell-ID>`)
+FEHLER: <kurze Beschreibung>
+
+Raw-Output, falls vorhanden:
+<vollständiger verfügbarer Subagent-Output>
+```
+
+Frage in diesem Fall nicht nach, sondern liefere das Teilergebnis direkt zurück.
+
+## Keine Nachbearbeitung
+
+- Keine eigene Einschätzung, Priorisierung oder Zusammenfassung ergänzen.
+- Keine Review-Befunde zusammenführen, deduplizieren oder umformulieren.
+- Keine Fixes eigenständig umsetzen.
+- Die Aufgabe von `/cleanreview` endet mit der Rückgabe der zwei getrennten Review-Blöcke.

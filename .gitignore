@@ -1,0 +1,55 @@
+# Ignore everything by default. This repo is an explicit whitelist backup.
+/*
+
+# Git metadata/config for this backup repo
+!/.gitignore
+!/README.md
+
+# Global Pi config
+!/settings.json
+!/AGENTS.md
+!/SYSTEM.md
+!/APPEND_SYSTEM.md
+!/keybindings.json
+!/models.json
+!/mcp.json
+
+# User resources
+!/extensions/
+!/extensions/**
+!/skills/
+!/skills/**
+!/prompts/
+!/prompts/**
+!/themes/
+!/themes/**
+
+# Small automation scripts for this backup setup
+!/bin/
+!/bin/pi-config-sync.sh
+!/bin/pi-update-and-sync.sh
+
+# Restore helper copy of the launchd job
+!/launchd/
+!/launchd/**
+
+# Never back up local secrets, credentials, sessions, caches, package installs, logs, or binaries
+/secrets/
+/auth.json
+/mcp-oauth/
+/sessions/
+/npm/
+/git/
+/mcp-cache.json
+/mcp-onboarding.json
+/pi-debug.log
+/run-history.jsonl
+/random-theme-state.json
+/reference/
+/bin/fd
+/bin/rg
+
+**/node_modules/
+**/.env
+**/.env.*
+**/.DS_Store

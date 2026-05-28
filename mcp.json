@@ -1,0 +1,47 @@
+{
+  "imports": [],
+  "mcpServers": {
+    "sonarqube": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "SONARQUBE_TOKEN",
+        "-e",
+        "SONARQUBE_ORG",
+        "mcp/sonarqube"
+      ],
+      "env": {
+        "SONARQUBE_TOKEN": "${SONARQUBE_TOKEN}",
+        "SONARQUBE_ORG": "${SONARQUBE_ORG}"
+      }
+    },
+    "grafana": {
+      "type": "stdio",
+      "command": "mcp-grafana",
+      "args": [],
+      "env": {
+        "GRAFANA_URL": "${GRAFANA_URL}",
+        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "${GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+      }
+    },
+    "jira": {
+      "type": "http",
+      "url": "https://mcp.atlassian.com/v1/mcp/authv2",
+      "auth": "oauth"
+    },
+    "slack": {
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp",
+      "auth": "oauth"
+    },
+    "miro": {
+      "type": "http",
+      "url": "https://mcp.miro.com/",
+      "auth": "oauth"
+    }
+  }
+}
