@@ -1,101 +1,109 @@
 ---
 name: jira-comment
-description: Verfasst aus dem bisherigen Session-Kontext einen Diskussions-Kommentar zur bearbeiteten Jira-Story (Funktionsweise grob, getroffene Entscheidungen, Stolpersteine/offene Punkte) und postet ihn nach Vorschau und Bestätigung via MCP.
+description: Verfasst aus dem bisherigen Session-Kontext einen knappen Diskussions-Kommentar zur Jira-Story, zeigt eine Vorschau, postet nach Bestätigung und kann optional nach Review/Fertig transitionieren.
 argument-hint: >-
   <optional: Issue-Key wie QF-123 und/oder Freitext-Hinweis; Reihenfolge beliebig>
 disable-model-invocation: true
 ---
 
-Ziel: einen kompakten Kommentar an die im aktuellen Workstream bearbeitete Jira-Story hängen, damit das Team über die Lösung sprechen kann. Der Kommentar entsteht aus dem bisherigen Session-Kontext — keine neue Recherche im Code.
+Ziel: Einen kompakten deutschen Markdown-Kommentar zur bearbeiteten Jira-Story posten. Inhalt kommt aus dem bisherigen Session-Kontext, nicht aus neuer Code-Recherche.
 
-## 1. Issue-Key ermitteln
+## 1. Issue-Key finden
 
-Schwerpunkt-Hinweis: der Teil der von Pi angehängten User-Argumente, der nach Entfernen des erkannten Issue-Keys übrig bleibt, gilt **immer** als Schwerpunkt-Hinweis (z.B. "betone die Architektur") — unabhängig davon, über welchen Pfad der Key ermittelt wird. Ist der Rest leer, gibt es keinen Hinweis.
+Der Argument-Rest nach Entfernen eines erkannten Keys ist immer Schwerpunkt-Hinweis.
 
-Reihenfolge, ohne zu fragen wenn eindeutig — bei mehreren Treffern in *einer* Quelle: nachfragen.
+Key-Regex: `\b[A-Z][A-Z0-9]+-\d+\b`.
 
-1. **Argument**: die angehängten User-Argumente nach Muster `\b[A-Z][A-Z0-9]+-\d+\b` parsen (Wortgrenzen). Genau ein Treffer → übernehmen; mehrere Treffer → nachfragen.
-2. **Session-Kontext** (gleiche Regex): in dieser Priorität — (a) aktueller Branch (`git rev-parse --abbrev-ref HEAD`), (b) Commit-Subjects auf der Branch-Range gegen den Default-Branch (Default-Branch via `git symbolic-ref refs/remotes/origin/HEAD` oder `git remote show origin`; Fallback: ohne Range `git log -n 20 --pretty=%s`), (c) bisheriger Chatverlauf. Ist kein Git-Workdir oder schlagen `git`-Aufrufe fehl: Quellen (a)/(b) überspringen, nur (c) auswerten. Genau ein Treffer in (a) → übernehmen; mehrere in (a) → nachfragen. Sonst: ist genau ein Key in (b) und (c) zusammen ≥2× vertreten → übernehmen. Sonst → Schritt 3.
-3. **Mehrdeutig oder keiner gefunden**: per `ask_user_question` mit den Top-Kandidaten als Optionen + Freitext nachfragen. **Keine** Jira-Suche (weder Bash noch MCP `jira_searchJiraIssuesUsingJql`) — nur lokale Quellen + Nachfrage.
+1. **Argumente**: genau ein Treffer → nutzen; mehrere → nachfragen.
+2. **Lokaler Kontext**: aus dem bisherigen Chatverlauf
+3. **Entscheidung**:
+   - genau ein Key kommt in Argumenten+Chat zusammen mindestens 2× vor → nutzen
+   - sonst per `ask_user_question` mit Top-Kandidaten + Freitext fragen
 
-## 2. CloudId besorgen
+Keine Jira-Suche verwenden.
 
-Falls noch nicht in der Session bekannt: MCP-Gateway-Tool `jira_getAccessibleAtlassianResources` aufrufen. Wenn genau eine Atlassian-Resource verfügbar ist, diese automatisch wählen. Bei mehreren Resources → per `ask_user_question` nachfragen; dabei die passende Site-URL aus den angezeigten Optionen wählen lassen.
+## 2. Vorbedingung prüfen
 
-## 2a. Vorbedingung "es gab Arbeit am Issue"
+Vor Jira-Zugriff prüfen, ob im Session-Kontext erkennbare Arbeit zum Issue existiert (Code-Änderungen, Diskussion, Tool-Calls mit Key-Bezug). Falls nicht: kurz informieren und nur nach expliziter Bestätigung fortfahren.
 
-Vor den MCP-Calls in Schritt 3 prüfen, ob der bisherige Session-Kontext überhaupt erkennbar etwas zur Story enthält (Code-Änderungen, Diskussion, Tool-Calls mit Bezug zum Key). Wenn offensichtlich nichts vorliegt: User informieren ("Im Session-Kontext finde ich keine Arbeit zu \<KEY\>. Trotzdem fortfahren?") und nur auf explizite Bestätigung weitermachen. Spart MCP-Calls und verhindert Inhalts-Halluzinationen.
+## 3. Issue schlank lesen
 
-## 3. Issue + letzte Kommentare lesen
+Für Issue-Reads immer Pi-Tool `jira_slim_issue` verwenden.
+`jira_slim_issue` liefert Key, Summary, Description-Text und alle Kommentare kompakt als Markdown. Daraus verwenden:
 
-Story-Felder selbst (Summary, Description, Custom-Fields) sind unkritisch im Token-Budget. Das `comment`-Feld dagegen blast die Response massiv auf: Comment-Bodies kommen unabhängig vom `responseContentFormat` als ADF zurück, *zusätzlich* wird die ganze Antwort pretty-printed (~3.5× größer als nötig). Selbst wenn die Harness das als persisted-output ablegt, leakt der 2-KB-Preview in den Hauptagent-Kontext. Konsequenz: **den Comment-Fetch komplett in einen Subagenten verlagern.**
+- Summary für Vorschau-Header.
+- Die jüngsten Kommentare für Doppelungsprüfung und Bezugnahmen.
 
-### 3a. Summary holen
+Kommentar-Auswertung:
 
-MCP-Gateway-Tool `jira_getJiraIssue` mit `fields: ["summary"]`, `responseContentFormat: "markdown"`. Liefert ~400 Bytes — Anker für die Vorschau-Headerzeile.
+- Neueste eigene/ähnliche Kommentare erkennen. Bei substanzieller Überlappung: Entwurf trotzdem zuerst vollständig zeigen, danach fragen, ob er als explizite Ergänzung formuliert oder abgebrochen werden soll.
+- Auf relevante fremde Kommentare in Klartext Bezug nehmen.
+- Keine Jira-Mentions (`[~accountid:…]`).
 
-### 3b. Comment-Zusammenfassung via Subagent
+## 4. Entwurf schreiben
 
-Pi-`subagent`-Tool mit einem frischen, leichten Agenten verwenden. Auftrag:
+Sprache: Deutsch. Format: Markdown (`contentFormat: "markdown"`). Stil: knapp, Bulletpoints statt Prosa, `###` nur wenn hilfreich.
 
-- Selbst MCP-Gateway-Tool `jira_getJiraIssue` mit `fields: ["comment"]`, `responseContentFormat: "markdown"` aufrufen (cloudId und issueKey im Prompt mitgeben).
-- Die fünf jüngsten Kommentare (nach `created` desc) extrahieren.
-- Bei persisted-output: die persisted-Datei via `read` öffnen. Bei direkter Response: in-place verarbeiten.
-- ADF-Bodies zu kurzem Markdown rendern (nur Klartext und sinnvolle Strukturen — keine Mentions, keine Avatar-URLs, keine `self`-Links).
-- Pro Kommentar: Autor-Displayname, Datum (YYYY-MM-DD), Markdown-Body. Bei sehr langen Bodies kürzen und auf Themenblöcke konzentrieren, die für eine Doppelungs-Erkennung relevant sind.
-- Gesamtoutput unter ~400 Wörter, deutsch. Keine Erläuterungen, kein Vorspann.
+Abschnitte in Reihenfolge, leere weglassen:
 
-Output des Subagenten ist die Basis für:
-- **Eigene Recent-Posts erkennen**: Wenn der neueste Kommentar inhaltlich substanziell mit dem geplanten Entwurf überlappt (gleiche Themenblöcke, gleiche Begriffe) — typisch nach einem gerade in dieser Session geposteten Kommentar — vor der Vorschau in Schritt 5 nachfragen: Soll der neue Kommentar als _explizite Ergänzung_ zu dem bestehenden gerahmt werden ("Ergänzend zur Umsetzungsnotiz oben: …"), oder ist das eine ungewollte Doppelung und der Skill soll abbrechen?
-- **Bezug auf fremde Kommentare**: ggf. Klartext-Bezug nehmen ("anknüpfend an die Frage zu X von letzter Woche …"). Auf bereits beantwortete Punkte nicht erneut eingehen. **Keine** Jira-Mentions (`[~accountid:…]`) — nur Klartext.
+1. **Was es tut** — fachlich/technisch high-level; keine Klassen-/Methodenlisten, keine Dateipfade.
+2. **Entscheidungen** — Designentscheidungen mit Begründung; relevante verworfene Alternative kurz nennen.
+3. **Stolpersteine & offene Punkte** — gelöste Stolpersteine vs. offene Team-Entscheidungen klar trennen.
 
-## 4. Entwurf erzeugen
+Nicht erwähnen:
 
-**Sprache**: Deutsch. **Format**: Markdown (`contentFormat: "markdown"` beim Posten).
+- Test-Inventar (Klassen, Anzahl, Assertions). Tests nur nennen, wenn der Test-Schnitt selbst eine Entscheidung ist.
+- Trivialitäten wie Formatierung, Renames, Lombok.
+- Floskeln wie „sauber umgesetzt“, „alle Tests grün“.
+- Arbeitsverlauf/Zwischenstände. Finalen Zustand statisch begründen, nicht chronologisch erzählen.
 
-**Stil**:
-- Kompakt. Bulletpoints statt Prosa.
-- Überschriften (`###`) nur wo sie sinnvoll trennen — bei sehr kurzen Kommentaren weglassen.
-- Pro Bullet ein Gedanke. Keine Fülltexte.
+Wenn danach kein sinnvoller Inhalt bleibt: nicht posten, kurz begründen und beenden. Schwerpunkt-Hinweis aus Argumenten berücksichtigen.
 
-**Inhalte** (in dieser Reihenfolge, Abschnitte weglassen wenn leer):
+## 5. Vorschau und Bestätigung
 
-1. **Was das Feature tut** — fachlich/technisch auf High-Level. Keine Klassen-/Methodennamen auflisten, keine Datei-Pfade. Lesbar für jemanden, der den Code nicht offen hat.
-2. **Entscheidungen** — getroffene Designentscheidungen *mit Begründung*. Wenn relevant: verworfene Alternative kurz nennen.
-3. **Stolpersteine & offene Punkte** — Probleme während der Umsetzung, ungeklärte Fragen, Punkte die das Team noch entscheiden sollte. Klar markieren, was *offen* ist vs. was *gelöst aber erwähnenswert* ist.
+Immer zuerst den fertigen Entwurf sichtbar in den Chat schreiben:
 
-**Strikt nicht erwähnen**:
-- Test-Inventar-Listen (welche Test-Klasse, wieviele Tests, welche Assertions). Tests _dürfen_ erwähnt werden, wenn der Test-Schnitt selbst eine Entscheidung ist (z. B. "IT mit WireMock statt Staging-Roundtrip, weil …") — aber nicht als Aufzählung „was wurde getestet".
-- Trivialitäten (Formatierung, Renames, Lombok-Annotations).
-- Generische Floskeln ("sauber umgesetzt", "alle Tests grün").
-- Zwischen-Iterationen / Arbeitsverlauf ("erst war X, dann Y", "ursprünglich/initial 16/256 geplant, dann auf 4/64 reduziert", "erste Test-Iteration leakte …"). Nur den finalen Zustand beschreiben. Falls eine Begründung wertvoll ist (warum etwas jetzt so ist, wie es ist), als statische Eigenschaft formulieren ("Pool 4/64 abgeleitet aus …"), nicht als Verlauf ("wurde von 16 auf 4 angepasst, weil …").
+`Issue: <KEY> — <Summary>`
 
-Wenn nach Anwendung der Verbote *alle drei* Abschnitte leer wären (z.B. frische Session ohne erkennbare Arbeit am Issue): nicht posten. Stattdessen User mit kurzer Begründung informieren und Skill beenden.
+Dann den Entwurf als Markdown-Codeblock; bei enthaltenen Code-Fences längere Fences verwenden.
 
-Falls aus dem Argument ein Schwerpunkt-Hinweis kam, diesen beim Verfassen berücksichtigen.
+Erst danach `ask_user_question` mit genau diesen Optionen:
 
-## 5. Vorschau zeigen
+1. **Nur posten** — Kommentar posten, Status nicht ändern.
+2. **Posten + Review** — posten und nach `Review` transitionieren.
+3. **Posten + Fertig** — posten und nach `Fertig` transitionieren.
+4. **Abbrechen** — nichts posten, nichts ändern.
 
-Den Entwurf als Code-Block (` ```markdown … ``` `) in den Chat schreiben. Davor eine Zeile: `Issue: <KEY> — <Summary>`. Enthält der Entwurf selbst Code-Fences, längere Fences (` ```` `) für die Vorschau verwenden, damit das Fencing nicht bricht.
+Frage: Posten, Status setzen, abbrechen, oder Anpassungen im Freitextfeld nennen? Keine separate Anpassungsoption.
 
-Dann per `ask_user_question` mit genau zwei expliziten Optionen, **Posten** und **Abbrechen** (in dieser Reihenfolge — sicherer Default zuerst, die "schreibende" Aktion bewusst nicht als erste Option). Die Frage selbst weist auf das automatische Freitextfeld hin, das der User für Anpassungswünsche nutzen soll (z. B.: "Posten, abbrechen, oder Anpassungen direkt im Freitextfeld nennen?"). Keine separate "Anpassen"-Option — die `ask_user_question`-UI hängt die Freitext-Variante bei Single-Select-Fragen automatisch an.
+Freitext → Entwurf überarbeiten, erneut Vorschau + gleiche Frage. Eindeutiger Abbruch-Freitext → abbrechen.
 
-Auswertung der Antwort:
+## 6. Posten und optional transitionieren
 
-- **Posten** → Schritt 6.
-- **Abbrechen** → nichts tun, kurz bestätigen.
-- **Freitext** (egal ob "Sonstiges" oder vom Tool als `Other`/`answer` zurückgegeben) → als Feedback nutzen, neuen Entwurf bauen, neue Vorschau anzeigen, erneut `ask_user_question` mit denselben zwei Optionen. Loop bis Posten oder Abbrechen. Klingt der Freitext eindeutig nach Abbruch ("vergiss es", "stop", "abbrechen", o. ä.) → wie **Abbrechen** behandeln.
+Posten per MCP:
 
-## 6. Posten
+- `contentFormat: "markdown"`
+- `cloudId`
+- `issueIdOrKey`
+- `commentBody`
 
-MCP-Gateway-Tool `jira_addCommentToJiraIssue` mit `contentFormat: "markdown"`, `cloudId`, `issueIdOrKey`, `commentBody`.
+Ohne Zielstatus: nach erfolgreichem Post kurz mit Key bestätigen, keine URL erfinden.
 
-Nach erfolgreichem Post: einzeilige Bestätigung mit Issue-Key. Keine URL erfinden (weder aus Issue-Key noch aus Cloud-Hostname).
+Mit Zielstatus:
+
+1. Nach dem Post aktuellen Status per MCP mit `fields: ["status"]`, `responseContentFormat: "markdown"` lesen.
+2. Wenn Status bereits Zielstatus (case-insensitive): bestätigen, keine Transition.
+3. Sonst MCP aufrufen.
+4. Transition wählen, deren `to.name` exakt `Review`/`Fertig` matcht; Fallback `name`.
+5. Keine passende Transition: Kommentar nicht zurückrollen; informieren und verfügbare Transition-Namen nennen, falls erkennbar.
+6. Gefundene Transition per MCP mit `transition: {"id":"<transitionId>"}` ausführen.
+7. Erfolg kurz mit Key und Zielstatus bestätigen, keine URL erfinden.
 
 ## Fehlerpfade
 
-- MCP-Tool nicht authentifiziert / liefert Auth-Fehler → User darauf hinweisen, dass die Jira-MCP-Verbindung neu authentifiziert werden muss, und abbrechen.
-- `jira_getAccessibleAtlassianResources` liefert keine passende Resource → User darauf hinweisen und abbrechen (kein Raten welche CloudId zu nehmen ist).
-- `jira_getJiraIssue` liefert 404 / Issue existiert nicht → User mit dem versuchten Key informieren und zurück zu Schritt 1 (oder abbrechen, wenn der Key vom User kam).
-- Kein Issue-Key auffindbar und User wählt im `ask_user_question` "Abbrechen"/leer → Skill beenden, kein Posten.
-- Beim Posten Fehler → Antwort des MCP-Tools wörtlich zeigen, nicht erneut probieren. Bei Timeout/Netzwerkfehler den User darauf hinweisen, dass der Kommentar trotzdem durchgegangen sein könnte und manuell in Jira geprüft werden sollte.
+- Jira-Auth fehlt/Auth-Fehler → auf nötige Reauth hinweisen, abbrechen.
+- Keine sipgate-Atlassian-Resource → hinweisen, abbrechen; CloudId nicht raten.
+- Issue 404 → versuchten Key nennen; bei User-Key abbrechen, sonst zurück zur Key-Findung.
+- Kein Key und User bricht ab/leere Antwort → beenden, nicht posten.
+- Post-Fehler → Tool-Antwort wörtlich zeigen, nicht erneut probieren. Bei Timeout/Netzwerk: Kommentar könnte trotzdem angekommen sein; manuell prüfen.
+- Transition-Fehler → Tool-Antwort wörtlich zeigen, nicht erneut probieren. Klar sagen: Kommentar ist gepostet, nur Statuswechsel fehlgeschlagen. Bei Timeout/Netzwerk: Transition könnte trotzdem erfolgt sein.

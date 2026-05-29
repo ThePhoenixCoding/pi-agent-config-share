@@ -1,16 +1,16 @@
 {
-  "lastChangelogVersion": "0.75.5",
+  "lastChangelogVersion": "0.77.0",
   "terminal": {
     "showTerminalProgress": true
   },
   "theme": "material-ui-darker-orange",
-  "defaultProvider": "claude-bridge",
-  "defaultModel": "claude-opus-4-7",
-  "defaultThinkingLevel": "high",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "medium",
   "enabledModels": [
-    "anthropic/claude-opus-4-7",
     "openai-codex/gpt-5.5",
-    "claude-bridge/claude-opus-4-7"
+    "anthropic/claude-opus-4-8",
+    "claude-bridge/claude-opus-4-8"
   ],
   "hideThinkingBlock": false,
   "treeFilterMode": "user-only",

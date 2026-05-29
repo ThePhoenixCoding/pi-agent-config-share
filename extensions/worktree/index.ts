@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { complete } from "@earendil-works/pi-ai";
 import type { ExecResult, ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import {
 	WORKTREE_DIRECTORY_NAME,
@@ -169,14 +170,100 @@ async function handleDirtyWorktree(pi: ExtensionAPI, ctx: ExtensionCommandContex
 
 	const choice = await ctx.ui.select("This worktree has uncommitted changes. What should happen?", [
 		"Abort",
+		"Commit uncommitted changes",
 		"Discard uncommitted changes",
 	]);
+	if (choice === "Commit uncommitted changes") {
+		await runGit(pi, ["add", "--all"], currentRoot, 30_000);
+		const message = await generateCommitMessage(pi, ctx, currentRoot);
+		await commitUncommittedChanges(pi, ctx, currentRoot, message);
+		return;
+	}
 	if (choice !== "Discard uncommitted changes") {
 		throw new Error("Cancelled /worktree close because the worktree has uncommitted changes.");
 	}
 
 	await runGit(pi, ["reset", "--hard"], currentRoot, 30_000);
 	await runGit(pi, ["clean", "-fd"], currentRoot, 30_000);
+}
+
+async function commitUncommittedChanges(
+	pi: ExtensionAPI,
+	ctx: ExtensionCommandContext,
+	currentRoot: string,
+	message: string,
+): Promise<void> {
+	try {
+		await runGit(pi, ["commit", "-m", message], currentRoot, 120_000);
+		return;
+	} catch (error) {
+		const choice = await ctx.ui.select(
+			[
+				"git commit failed, most likely because a hook failed.",
+				"If clean verify has already run successfully for these exact staged changes, you may retry with --no-verify.",
+				"What should happen?",
+			].join("\n"),
+			["Abort", "Retry commit with --no-verify"],
+		);
+		if (choice !== "Retry commit with --no-verify") {
+			throw error;
+		}
+		await runGit(pi, ["commit", "--no-verify", "-m", message], currentRoot, 120_000);
+	}
+}
+
+async function generateCommitMessage(
+	pi: ExtensionAPI,
+	ctx: ExtensionCommandContext,
+	currentRoot: string,
+): Promise<string> {
+	if (!ctx.model) {
+		throw new Error("Cannot generate a commit message because no model is selected.");
+	}
+
+	const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
+	if (!auth.ok) {
+		throw new Error(`Cannot generate a commit message: ${auth.error}`);
+	}
+	if (!auth.apiKey) {
+		throw new Error(`Cannot generate a commit message because no API key is configured for ${ctx.model.provider}.`);
+	}
+
+	const status = await gitOutput(pi, ["status", "--porcelain"], currentRoot);
+	const diffStat = await gitOutput(pi, ["diff", "--cached", "--stat"], currentRoot);
+	const diff = await gitOutput(pi, ["diff", "--cached", "--no-ext-diff"], currentRoot);
+	const maxDiffLength = 20_000;
+	const visibleDiff = diff.length > maxDiffLength ? `${diff.slice(0, maxDiffLength)}\n\n[diff truncated]` : diff;
+	const response = await complete(
+		ctx.model,
+		{
+			systemPrompt:
+				"Generate a concise Git commit subject for staged changes. Output exactly one line, no quotes, no markdown, no prefix. Use imperative mood. Keep it under 72 characters.",
+			messages: [
+				{
+					role: "user" as const,
+					content: [
+						{
+							type: "text" as const,
+							text: [`Git status:\n${status}`, `Diff stat:\n${diffStat}`, `Diff:\n${visibleDiff}`].join("\n\n"),
+						},
+					],
+					timestamp: Date.now(),
+				},
+			],
+		},
+		{ apiKey: auth.apiKey, headers: auth.headers, maxTokens: 64, signal: ctx.signal },
+	);
+	const generated = response.content
+		.filter((content): content is { type: "text"; text: string } => content.type === "text")
+		.map((content) => content.text)
+		.join("\n");
+	const message = normalizeGeneratedCommitMessage(generated);
+	if (!message) {
+		throw new Error("Generated commit message was empty.");
+	}
+
+	return message;
 }
 
 async function commitsNotOnMain(pi: ExtensionAPI, currentRoot: string): Promise<string[]> {
@@ -355,6 +442,22 @@ async function runCommand(
 
 function formatError(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
+}
+
+function normalizeGeneratedCommitMessage(value: string): string | undefined {
+	const line = value
+		.split("\n")
+		.map((candidate) => candidate.trim())
+		.filter((candidate) => candidate.length > 0 && !candidate.startsWith("```"))[0];
+	const subject = line
+		?.replace(/^[-*]\s+/, "")
+		.replace(/^commit message:\s*/i, "")
+		.replace(/^["'`]|["'`]$/g, "")
+		.trim();
+	if (!subject) return undefined;
+	if (subject.length <= 72) return subject;
+
+	return subject.slice(0, 72).replace(/\s+\S*$/, "").trim() || subject.slice(0, 72).trim();
 }
 
 function isNodeErrorCode(error: unknown, code: string): boolean {

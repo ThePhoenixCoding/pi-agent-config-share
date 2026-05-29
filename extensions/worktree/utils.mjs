@@ -101,7 +101,7 @@ export function appleScriptString(value) {
 }
 
 export function buildIterm2SplitScript(launcherPath, worktreePath) {
-	const launchPrefix = appleScriptString(buildPiLaunchCommand(launcherPath, worktreePath));
+	const launchPrefix = appleScriptString(`exec ${buildPiLaunchCommand(launcherPath, worktreePath)}`);
 	return [
 		'tell application "iTerm2"',
 		"activate",
@@ -112,7 +112,10 @@ export function buildIterm2SplitScript(launcherPath, worktreePath) {
 		"set oldTty to tty of oldSession",
 		`set commandText to ${launchPrefix} & " '" & oldTty & "'"`,
 		"tell oldSession",
-		"split vertically with default profile command commandText",
+		"set newSession to (split vertically with default profile)",
+		"end tell",
+		"tell newSession",
+		"write text commandText",
 		"end tell",
 		"end tell",
 	].join("\n");

@@ -37,6 +37,7 @@ Standard-Ablauf für jede nicht-triviale Aufgabe:
 - Für lesenden Zugriff auf ein Github-Projekt zuerst in `~/git/` schauen; falls vorhanden, dort pullen und lesen.
 - Standardmäßig keine Kommentare im Code. Intentions-Beschreibungen sind erlaubt, falls die Absicht nicht trivial aus dem Code hervorgeht.
 - Pushe nicht und committe nicht, außer ich fordere dich explizit dazu auf.
+- Skippe niemals tests oder nutze --no-verify, außer ich fordere dich explizit dazu auf.
 
 ## Abschluss-Checkliste
 
@@ -57,6 +58,14 @@ Sobald die letzte Code-Änderung gemacht ist, führst du folgende Schritte selbs
 
 - Halte große Rohdaten aus dem Kontext: filtere Tool-Output an der Quelle (`grep`/`head`/`wc`/`jq`/`awk` in `bash`, `read` mit `offset`/`limit`, `fetch_content` statt `curl`, `subagent` mit `context: "fresh"` für umfangreiche Recherche) und liefere mir nur das abgeleitete Ergebnis.
 
+## Grafana/Loki
+
+- Service-Logs in dev/live über Grafana/Loki lesen, nicht über Kubernetes.
+- Datasources über `grafana_list_datasources(type=...)` bestimmen und UIDs verwenden.
+- Loki-Label-Schema mit `grafana_list_loki_label_names` verifizieren; Queries eng filtern: `environment`, `service`/`service_name`, kurzes Zeitfenster.
+- Für Checks zuerst Count-/Existenzqueries nutzen; Raw-Logs nur bei Bedarf und mit kleinem `limit`; Stacktraces nur einzeln laden.
+- Keine breiten Regexe oder Label-Value-Queries ohne enge Label-Filter.
+
 ## Build- und Test-Output
 
 - Maven über `~/.pi/bin/sdk-mvnw` (mit Wrapper) bzw. `~/.pi/bin/sdk-mvn` (ohne) aufrufen. Die Wrapper sourcen SDKMAN intern, sodass `mvn`/`java` ohne weitere Shell-Vorbereitung verfügbar sind.
@@ -64,3 +73,9 @@ Sobald die letzte Code-Änderung gemacht ist, führst du folgende Schritte selbs
 - Die gespeicherte Datei mit gefilterten `bash`-Kommandos und dem `read`-Tool analysieren (nicht `cat`/ungefilterte Ausgabe), statt Kontext während des Test-Laufs zu holen.
 - Nach Code-Änderungen Tests erneut laufen lassen.
 
+## Testen im Dev
+
+- Für REST API-Requests im Dev nutze die folgenden Credentials:
+  - mit Admin-Rechten (webuser w0): `-u "$duser0:$decret0"`
+  - ohne Admin-Rechte (webuser w1): `-u "$duser1:$decret1"`
+- Du darfst schreibende Operationen ausführen, musst sie aber nach deinen Tests wieder rückgängig machen
