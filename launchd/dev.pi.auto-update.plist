@@ -7,7 +7,9 @@
 
   <key>ProgramArguments</key>
   <array>
-    <string>/Users/beruflich/.pi/agent/bin/pi-update-and-sync.sh</string>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>$HOME/.pi/agent/bin/pi-update-and-sync.sh</string>
   </array>
 
 

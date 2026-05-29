@@ -102,7 +102,7 @@ Mit Zielstatus:
 ## Fehlerpfade
 
 - Jira-Auth fehlt/Auth-Fehler → auf nötige Reauth hinweisen, abbrechen.
-- Keine sipgate-Atlassian-Resource → hinweisen, abbrechen; CloudId nicht raten.
+- Keine passende Atlassian-Resource → hinweisen, abbrechen; CloudId nicht raten.
 - Issue 404 → versuchten Key nennen; bei User-Key abbrechen, sonst zurück zur Key-Findung.
 - Kein Key und User bricht ab/leere Antwort → beenden, nicht posten.
 - Post-Fehler → Tool-Antwort wörtlich zeigen, nicht erneut probieren. Bei Timeout/Netzwerk: Kommentar könnte trotzdem angekommen sein; manuell prüfen.

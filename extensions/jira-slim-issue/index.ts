@@ -14,7 +14,7 @@ export default function jiraSlimIssueExtension(pi: ExtensionAPI) {
     parameters: Type.Object({
       issueIdOrKey: Type.String({ description: "Jira issue key or ID, e.g. QF-312" }),
       cloudId: Type.Optional(Type.String({ description: "Atlassian cloudId. Optional when only one Jira resource is accessible." })),
-      siteUrl: Type.Optional(Type.String({ description: "Atlassian site URL, e.g. https://sipgatede.atlassian.net. Optional when only one Jira resource is accessible." })),
+      siteUrl: Type.Optional(Type.String({ description: "Atlassian site URL, e.g. https://example.atlassian.net. Optional when only one Jira resource is accessible." })),
     }),
     async execute(_toolCallId, params) {
       const issue = await readJiraSlimIssue(params);

@@ -8,7 +8,6 @@ Starte über Pi zwei frische Subagenten parallel mit dem `subagent`-Tool. Beide 
 
 - `<scope>` sind die User-Argumente, die Pi nach dem Skill-Aufruf an diese Skill-Anweisung angehängt hat.
 - Leere Argumente → `uncommitted` als Default.
-- Beide Subagent-Prompts müssen `Antworte auf Deutsch.` enthalten.
 - Nutze für beide Subagenten `context: "fresh"`. Die Subagenten erhalten keinerlei Zusatzkontext: weder Ziel oder Motivation der Änderungen, noch Begründungen, Vorannahmen oder Hinweise auf erwartete Ergebnisse. Das Review soll unvoreingenommen auf Basis des Codes selbst erfolgen.
 - Nutze das `subagent`-Tool im Parallel-Modus mit genau zwei Tasks und `concurrency: 2`.
 - Verwende als Agent jeweils `delegate`.

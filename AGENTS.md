@@ -49,10 +49,10 @@ Sobald die letzte Code-Änderung gemacht ist, führst du folgende Schritte selbs
     - Nicht offensichtliche Nebenwirkungen/Gotchas auf als Kommentare am Code.
     - Dokumentiere keine Code-Paraphrasen, Methodennamen, Konstanten oder Details, die bei kleinen Codeänderungen mitwandern müssten.
     - Wenn besserer Code oder bessere Tests die Erklärung ersetzen können, bevorzuge Code/Test gegenüber Doku.
-3. **Review.** 
-    - `/cleanreview` ausführen.
-    - Alle Vorschläge aus den Reviews, die du für sinnvoll hältst, selbstständig einarbeiten.
-    - Falls du Änderungen eingearbeitet hast noch genau ein Mal erneut `/cleanreview` ausführen und erneut alle Vorschläge, die du für sinnvoll hälst, selbstständig einarbeiten.
+3. **Review.**
+    - Maximal zwei Review-Zyklen ausführen: initialer `/cleanreview`, danach höchstens ein erneuter `/cleanreview`.
+    - Nach jedem Review alle Vorschläge, die du für sinnvoll hältst, selbstständig einarbeiten.
+    - Nach dem zweiten Review keine weitere Review-Runde starten, auch wenn du danach noch Vorschläge einarbeitest.
 
 ## Kontext-Disziplin
 
@@ -73,9 +73,3 @@ Sobald die letzte Code-Änderung gemacht ist, führst du folgende Schritte selbs
 - Die gespeicherte Datei mit gefilterten `bash`-Kommandos und dem `read`-Tool analysieren (nicht `cat`/ungefilterte Ausgabe), statt Kontext während des Test-Laufs zu holen.
 - Nach Code-Änderungen Tests erneut laufen lassen.
 
-## Testen im Dev
-
-- Für REST API-Requests im Dev nutze die folgenden Credentials:
-  - mit Admin-Rechten (webuser w0): `-u "$duser0:$decret0"`
-  - ohne Admin-Rechte (webuser w1): `-u "$duser1:$decret1"`
-- Du darfst schreibende Operationen ausführen, musst sie aber nach deinen Tests wieder rückgängig machen
