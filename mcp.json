@@ -16,16 +16,32 @@
       ],
       "env": {
         "SONARQUBE_TOKEN": "${SONARQUBE_TOKEN}",
-        "SONARQUBE_ORG": "${SONARQUBE_ORG}"
+        "SONARQUBE_ORG": "sipgate"
+      }
+    },
+    "sg42": {
+      "type": "http",
+      "url": "https://sg42.tools.sipgate.net/mcp",
+      "auth": "oauth",
+      "oauth": {
+        "scope": "openid"
       }
     },
     "grafana": {
       "type": "stdio",
-      "command": "mcp-grafana",
+      "command": "/Users/beruflich/go/bin/mcp-grafana",
       "args": [],
       "env": {
-        "GRAFANA_URL": "${GRAFANA_URL}",
+        "GRAFANA_URL": "https://grafana.sipgate.cloud",
         "GRAFANA_SERVICE_ACCOUNT_TOKEN": "${GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+      }
+    },
+    "sg32": {
+      "type": "http",
+      "url": "https://sg32.tools.dev.sipgate.net/mcp",
+      "auth": "oauth",
+      "oauth": {
+        "scope": "openid"
       }
     },
     "jira": {
@@ -36,7 +52,11 @@
     "slack": {
       "type": "http",
       "url": "https://mcp.slack.com/mcp",
-      "auth": "oauth"
+      "auth": "oauth",
+      "oauth": {
+        "clientId": "1601185624273.8899143856786",
+        "redirectUri": "http://localhost:3118/callback"
+      }
     },
     "miro": {
       "type": "http",

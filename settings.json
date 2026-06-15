@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.77.0",
+  "lastChangelogVersion": "0.79.3",
   "terminal": {
     "showTerminalProgress": true
   },
@@ -10,9 +10,9 @@
   "enabledModels": [
     "openai-codex/gpt-5.5",
     "anthropic/claude-opus-4-8",
-    "claude-bridge/claude-opus-4-8"
+    "claude-bridge/claude-opus-4-7"
   ],
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "treeFilterMode": "user-only",
   "packages": [
     "npm:pi-subagents",
@@ -21,5 +21,6 @@
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@vanillagreen/pi-claude-bridge"
-  ]
+  ],
+  "defaultProjectTrust": "always"
 }

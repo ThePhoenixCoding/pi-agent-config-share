@@ -11,13 +11,14 @@ Starte über Pi zwei frische Subagenten parallel mit dem `subagent`-Tool. Beide 
 - Nutze für beide Subagenten `context: "fresh"`. Die Subagenten erhalten keinerlei Zusatzkontext: weder Ziel oder Motivation der Änderungen, noch Begründungen, Vorannahmen oder Hinweise auf erwartete Ergebnisse. Das Review soll unvoreingenommen auf Basis des Codes selbst erfolgen.
 - Nutze das `subagent`-Tool im Parallel-Modus mit genau zwei Tasks und `concurrency: 2`.
 - Verwende als Agent jeweils `delegate`.
+- Nutze einen Timeout von 10 Minuten.
 - Wähle vor dem Start genau ein Thinking-Level für beide Review-Agenten. Nutze den Modell-Suffix `:<thinking>` mit folgender Auswahl:
   - `medium`: Bei trivialen Änderungen, z. B. nur Dokumentation, reine Formatierung oder geänderte Werte in Konfigurationsdateien.
   - `high`: Standardfall für normale Code- und Teständerungen.
   - `xhigh`: Bei komplexen, risikoreichen oder sicherheitsrelevanten Änderungen.
 - Verwende diese Modell-Overrides mit dem gewählten Thinking-Level:
   - GPT-Review: `model: "openai-codex/gpt-5.5:<thinking>"`
-  - Opus-Review: `model: "claude-bridge/claude-opus-4-8:<thinking>"`
+  - Opus-Review: `model: "claude-bridge/claude-opus-4-7:<thinking>"`
 - Beispiel: `model: "openai-codex/gpt-5.5:high"`
 
 Ersetze `<scope>` jeweils durch den ermittelten Scope-Text (`uncommitted`, falls leer).
@@ -29,7 +30,7 @@ Jeder `/skill:review`-Subagent rahmt seinen Output mit `===BEGIN REVIEW===` / `=
 Gib dem Aufrufer eine einzige zusammengeführte Antwort zurück. Die Antwort besteht aus den beiden Reviews klar getrennt hintereinander, in dieser Reihenfolge:
 
 1. GPT-Review (`openai-codex/gpt-5.5:<thinking>`)
-2. Opus-Review (`claude-bridge/claude-opus-4-8:<thinking>`)
+2. Opus-Review (`claude-bridge/claude-opus-4-7:<thinking>`)
 
 Format:
 
@@ -37,7 +38,7 @@ Format:
 ## Review 1 — GPT-5.5 <thinking> (`openai-codex/gpt-5.5:<thinking>`)
 <kompletter Output des GPT-Subagenten inklusive ===BEGIN REVIEW=== und ===END REVIEW===, byte-genau kopiert>
 
-## Review 2 — Opus 4.8 Bridge <thinking> (`claude-bridge/claude-opus-4-8:<thinking>`)
+## Review 2 — Opus 4.7 Bridge <thinking> (`claude-bridge/claude-opus-4-7:<thinking>`)
 <kompletter Output des Opus-Subagenten inklusive ===BEGIN REVIEW=== und ===END REVIEW===, byte-genau kopiert>
 ```
 

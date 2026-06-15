@@ -1,5 +1,5 @@
 import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
-import { matchesKey } from "@earendil-works/pi-tui";
+import { matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
 import { aggregateCosts, periodKeys } from "./aggregator.ts";
 import { saveExcludedCostProviders } from "./scanner.ts";
 import type { AggregatedProvider, AggregationResult, CostTotals, PeriodKey, ScanResult, UsageTotals } from "./types.ts";
@@ -135,7 +135,7 @@ export const showCostOverview = async (ctx: ExtensionCommandContext, scan: ScanR
 				`Events: ${scan.stats.eventsAfterDedupe} counted, ${scan.stats.eventsBeforeDedupe - scan.stats.eventsAfterDedupe} duplicates skipped`,
 				`Cache: ${scan.cachePath}`,
 				border,
-			];
+			].map((line) => truncateToWidth(line, width));
 		},
 		invalidate: () => {},
 		handleInput: (data: string) => {

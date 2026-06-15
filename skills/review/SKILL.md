@@ -44,13 +44,14 @@ Unklar, welcher Scope gemeint ist? Einmal kurz nachfragen statt raten.
 
 ## Prüfkriterien (in dieser Reihenfolge)
 
-1. **Alternative Lösungen** — gibt es einen besseren Weg zum Ziel?
+1. **Alternative Lösungen** — Gibt es einen besseren Weg zum Ziel?
 2. **Bugs** — Null-Handling, Race Conditions, Edge Cases, Logik.
 3. **Security** — Injection, Auth, Datenlecks, Input-Validation.
-4. **Test-Abdeckung** — Produktionscode geändert, aber keine Tests dazu? → **Kritisch**. Ausnahme: reines Refactoring ohne Verhaltensänderung (dann nur prüfen, ob bestehende Tests noch sinnvoll greifen).
-5. **Projekt-Standards** — `AGENTS.md`-/`CLAUDE.md`-Regeln, Konventionen.
-6. **Maintainability** — unklarer Code, fehlendes Error-Handling, Duplikate.
-7. **Performance** — N+1, unnötige Allokationen, Algorithmik.
+4. **Test-Abdeckung** — Produktionscode geändert, aber keine Tests dazu? → **Kritisch**
+5. **Geänderte Tests** — Tests geändert? → Wurde ihre Aussagekraft abgeschwächt? Inwiefern wird jetzt ein anderes Verhalten asserted als vorher?
+6. **Projekt-Standards** — `AGENTS.md`-/`CLAUDE.md`-Regeln, Konventionen.
+7. **Maintainability** — unklarer Code, fehlendes Error-Handling, Duplikate.
+8. **Performance** — N+1, unnötige Allokationen, Algorithmen.
 
 ## Output
 

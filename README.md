@@ -1,14 +1,12 @@
-# Pi agent config share
+# Pi agent config backup
 
-Shareable, public-safe copy of a personal Pi agent configuration.
-
-This repo is intended as a starting point for colleagues who want to compare or bootstrap their own Pi setup. It intentionally excludes workplace-specific private endpoints, credentials, OAuth state, sessions, caches, package installs, and logs.
+Private whitelist backup for global Pi configuration.
 
 Backed up:
 
 - `settings.json`, `AGENTS.md`, optional system/keybinding/model files
 - `mcp.json` with environment-variable placeholders only
-- generic `extensions/`, `skills/`, `prompts/`, `themes/`
+- `extensions/`, `skills/`, `prompts/`, `themes/`
 - small backup/update helper scripts
 
 Not backed up:
@@ -16,15 +14,14 @@ Not backed up:
 - sessions, package installs, caches, logs
 - `auth.json`, `mcp-oauth/`, `secrets/`
 - binaries in `bin/`
-- workplace-specific MCP endpoints and skills
 
-Local MCP secrets can live in `~/.pi/agent/secrets/mcp.env` and should be loaded by your shell before starting Pi.
+Local MCP secrets live in `~/.pi/agent/secrets/mcp.env` and are loaded by the `pi()` shell function in `~/.zshrc`.
 
 Restore sketch:
 
 ```bash
 npm install -g --ignore-scripts @earendil-works/pi-coding-agent
-git clone https://github.com/ThePhoenixCoding/pi-agent-config-share.git ~/.pi/agent
+git clone https://github.com/ThePhoenixCoding/pi-agent-config.git ~/.pi/agent
 pi update --extensions
 pi
 /login
