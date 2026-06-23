@@ -92,5 +92,7 @@ Sobald die letzte Code-Änderung gemacht ist, führst du folgende Schritte selbs
 - Header-Namen case-insensitiv prüfen: Dev/ngrok/Python können z. B. `X-Sipgate-Pushapi-Version` statt exakt `X-Sipgate-PushApi-Version` anzeigen.
 - Bei REST-API-Problemen zusätzlich Grafana/Loki prüfen: Gateway-Fehler können im `rest-api-v2-service` liegen, während `sipgateio-frontend-api-service` oder `hi-iti-push-api-service` bereits korrekt arbeiten.
 
-## Informationsquellen
-- [REST API, Push API, CI Webhooks, Flow](~/git/sipgateio-llms-docs/llms.txt)
+## Informationsquellen (vor dem Lesen immer erst pullen!)
+- [REST API (v2, pulsar)](~/git/sipgateio-llms-docs/docs/rest-api.md)
+- [Push API](~/git/sipgateio-llms-docs/docs/push-api.md)
+- [CI Webhooks](~/git/sipgateio-llms-docs/docs/ci-webhooks.md)

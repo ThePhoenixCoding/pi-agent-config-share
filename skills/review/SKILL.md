@@ -8,7 +8,7 @@ Review-Auftrag: Nutze die User-Argumente, die Pi nach dem Skill-Aufruf an diese 
 
 ## Vorgehen
 
-Es kann davon ausgegangen werden, dass alle tests passen. Im Rahmen dieses skills sollen daher keine Tests lediglich mit dem Ziel ausgeführt werden, um herauszufinden, ob die Tests passen. Eine Ausführung der Tests ist erlaubt, wenn irh Output relevant für die Beurteilung der Qualität von Code oder Tests ist.
+Es kann davon ausgegangen werden, dass alle tests passen. Im Rahmen dieses skills sollen daher keine Tests lediglich mit dem Ziel ausgeführt werden, um herauszufinden, ob die Tests passen. Eine Ausführung der Tests ist erlaubt, wenn ihr Output relevant für die Beurteilung der Qualität von Code oder Tests ist.
 
 1. Projekt-`AGENTS.md` und/oder `CLAUDE.md` lesen, falls vorhanden (Coding-Standards).
 2. Die angehängten User-Argumente interpretieren und Diff holen — siehe Scope-Mapping unten. Bei leerem Input: `uncommitted` als Default.
@@ -51,7 +51,8 @@ Unklar, welcher Scope gemeint ist? Einmal kurz nachfragen statt raten.
 5. **Geänderte Tests** — Tests geändert? → Wurde ihre Aussagekraft abgeschwächt? Inwiefern wird jetzt ein anderes Verhalten asserted als vorher?
 6. **Projekt-Standards** — `AGENTS.md`-/`CLAUDE.md`-Regeln, Konventionen.
 7. **Maintainability** — unklarer Code, fehlendes Error-Handling, Duplikate.
-8. **Performance** — N+1, unnötige Allokationen, Algorithmen.
+8. **Entfernungen** — Blieben nach Entfernungen irgendwelche Reste übrig?
+9. **Performance** — N+1, unnötige Allokationen, Algorithmen.
 
 ## Output
 

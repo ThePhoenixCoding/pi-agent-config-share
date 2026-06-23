@@ -1,16 +1,17 @@
 {
-  "lastChangelogVersion": "0.79.3",
+  "lastChangelogVersion": "0.79.10",
   "terminal": {
     "showTerminalProgress": true
   },
   "theme": "material-ui-darker-orange",
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
+  "defaultProvider": "coding-sipgate-ai",
+  "defaultModel": "zai-org/GLM-5.2-FP8",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
     "openai-codex/gpt-5.5",
     "anthropic/claude-opus-4-8",
-    "claude-bridge/claude-opus-4-7"
+    "claude-bridge/claude-opus-4-8",
+    "coding-sipgate-ai/zai-org/GLM-5.2-FP8"
   ],
   "hideThinkingBlock": true,
   "treeFilterMode": "user-only",

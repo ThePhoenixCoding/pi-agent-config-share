@@ -28,7 +28,7 @@ sleep 30
 # Wait up to ~5 minutes for internet connectivity.
 for i in {1..10}; do
   if /usr/bin/curl -fsS --max-time 10 https://pi.dev/api/latest-version >/dev/null 2>&1; then
-    "$PI_BIN" update
+    "$PI_BIN" update --all
     update_status=$?
     run_context_bar_patch
     echo "$today" > "$MARKER"
