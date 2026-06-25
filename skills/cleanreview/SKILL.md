@@ -25,6 +25,7 @@ Starte über Pi drei frische Subagenten parallel mit dem `subagent`-Tool. Alle d
 - Beispiel: `model: "openai-codex/gpt-5.5:high"`
 
 Setze je Task `skill: "review"` und als `task` den ermittelten Scope-Text (`uncommitted`, falls leer).
+Setze je Task explizit `acceptance: false`.
 
 ## Ausgabe an den User
 
