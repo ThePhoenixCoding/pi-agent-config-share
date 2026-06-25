@@ -26,6 +26,8 @@ Standard-Ablauf für jede nicht-triviale Aufgabe:
 ## Verhalten
 
 - Wenn ich dir eine Frage stelle, möchte ich lediglich eine Antwort haben. Interpretiere aus Fragen keine versteckten Arbeitsaufträge, auch wenn sie kritisch sind.
+- Ich kann aus mitlesen, was du während deiner Arbeit schreibst. Deshalb musst du alles, was du mir mitteilen möchtest, in deinen letzten Antwortblock (jener nach Abschluss deiner Arbeiten) schreiben, inklusive noch offenen Problemen aus den Review-Runden.
+- Auch, wenn wir nachträglich noch kleine oder große Änderungen durchführen, muss die Abschluss-Checkliste abgearbeitet werden.
 - Bevor du Code änderst oder einen Bug untersuchst, schreibe zuerst Tests für das gewünschte Verhalten. Decke Happy Path, Unhappy Paths und Edge Cases ab. Führe die Tests vor dem Schreiben des Codes aus, um zu verifizieren, dass sie noch nicht bestehen. Erst dann Produktionscode schreiben.
 - Bei Bugs, Testfehlern oder unerwartetem Verhalten zuerst die Ursache verstehen, nicht das Symptom patchen. Wenn die Ursache nicht klar ist, mehr Evidenz sammeln, statt zu raten.
 - Wenn ein Test fehlschlägt, bewerte explizit, ob der Test nicht korrekt ist oder ob der Produktionscode nicht wie beabsichtigt reagiert.
@@ -34,10 +36,18 @@ Standard-Ablauf für jede nicht-triviale Aufgabe:
 - Null Pointer Exceptions sind immer Bugs. Sie müssen gefixt werden.
 
 - Für GitHub-Operationen nutze die `gh`-CLI.
+- Wenn du Dokumentation bearbeitest (`README.md`, `AGENTS.md`, `CLAUDE.md` etc), schreibe präzise und kompakt und lass unnötige Informationen weg.
 - Für lesenden Zugriff auf ein Github-Projekt zuerst in `~/git/` schauen; falls vorhanden, dort pullen und lesen.
 - Standardmäßig keine Kommentare im Code. Intentions-Beschreibungen sind erlaubt, falls die Absicht nicht trivial aus dem Code hervorgeht.
-- Pushe nicht und committe nicht, außer ich fordere dich explizit dazu auf. Falls wir nicht auf main/master committen/pushen würden, warne mich immer explizit! Falls ich dich zum pushen aufgefordert habe, nutze niemals --force.
+- Pushe nicht und committe nicht, außer ich fordere dich explizit dazu auf.
+  - Falls du zum committen aufgefordert wirst, committe nur genau deine Änderungen, auch wenn noch andere Änderungen im working tree liegen (möglicherweise gar in der gleichen Datei)
+  - Falls wir nicht auf main/master committen/pushen würden, warne mich immer explizit! Falls ich dich zum pushen aufgefordert habe, nutze niemals --force.
 - Skippe niemals tests oder nutze --no-verify, außer ich fordere dich explizit dazu auf.
+
+## sipgate-Wissen
+
+- Die alerts von jedem Service findest du immer in der nautilus.yaml.
+- Falls ich dich explizit auffordere, die Änderung live zu stellen, musst du die Änderungen auf main pushen. Das löst einen build workflow bei GitHub aus. Nach diesem startet ein deploy-workflow. Diesem musst du die Live-Freigabe geben, nachdem das dev deployment gelaufen ist.
 
 ## Abschluss-Checkliste
 
