@@ -104,15 +104,17 @@ function findFooterFile() {
 
 const helperSource = `const CONTEXT_USAGE_BAR_WIDTH = 14;
 const CONTEXT_USAGE_GRADIENT_STOPS = [
-    { percent: 0, rgb: { r: 0, g: 102, b: 255 } },
-    { percent: 15, rgb: { r: 0, g: 200, b: 0 } },
-    { percent: 25, rgb: { r: 255, g: 220, b: 0 } },
-    { percent: 40, rgb: { r: 255, g: 0, b: 0 } },
+    { percent: 0, rgb: { r: 148, g: 0, b: 211 } },
+    { percent: 100 / 6, rgb: { r: 75, g: 0, b: 130 } },
+    { percent: 200 / 6, rgb: { r: 0, g: 102, b: 255 } },
+    { percent: 300 / 6, rgb: { r: 0, g: 200, b: 0 } },
+    { percent: 400 / 6, rgb: { r: 255, g: 220, b: 0 } },
+    { percent: 500 / 6, rgb: { r: 255, g: 127, b: 0 } },
+    { percent: 100, rgb: { r: 255, g: 0, b: 0 } },
 ];
 const CONTEXT_USAGE_EMPTY_BG = { r: 48, g: 48, b: 48 };
 const CONTEXT_USAGE_EMPTY_FG = { r: 150, g: 150, b: 150 };
-const CONTEXT_USAGE_LIGHT_FG = { r: 255, g: 255, b: 255 };
-const CONTEXT_USAGE_DARK_FG = { r: 0, g: 0, b: 0 };
+const CONTEXT_USAGE_LABEL_FG = { r: 255, g: 255, b: 255 };
 function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
 }
@@ -156,10 +158,6 @@ function bgRgb(rgb) {
 function fgRgb(rgb) {
     return \`\\x1b[38;2;\${rgb.r};\${rgb.g};\${rgb.b}m\`;
 }
-function contrastFgForBg(rgb) {
-    const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
-    return luminance > 0.55 ? CONTEXT_USAGE_DARK_FG : CONTEXT_USAGE_LIGHT_FG;
-}
 function colorCell(char, bg, fg) {
     return \`\${bgRgb(bg)}\${fgRgb(fg)}\${char}\\x1b[39m\\x1b[49m\`;
 }
@@ -168,19 +166,19 @@ export function formatContextUsageBar(percent, contextWindow, autoCompactEnabled
     const percentIsKnown = typeof percent === "number" && Number.isFinite(percent);
     const clampedPercent = percentIsKnown ? clamp(percent, 0, 100) : 0;
     const label = percentIsKnown ? \`\${Math.round(clampedPercent)}%\` : "?";
-    const fillColor = percentIsKnown ? getContextUsageGradientRgb(clampedPercent) : CONTEXT_USAGE_EMPTY_FG;
-    const filledCells = percentIsKnown ? Math.round((clampedPercent / 100) * width) : 0;
+    const filledCells = percentIsKnown
+        ? Math.min(width, Math.floor((clampedPercent / 100) * (width + 1)))
+        : 0;
     const labelStart = Math.max(0, Math.floor((width - label.length) / 2));
     const labelChars = new Map(Array.from(label, (char, index) => [labelStart + index, char]));
     let bar = "[";
     for (let i = 0; i < width; i++) {
         const filled = i < filledCells;
         const char = labelChars.get(i) ?? " ";
+        const fillColor = getContextUsageGradientRgb((i / (width - 1)) * 100);
         const bg = filled ? fillColor : CONTEXT_USAGE_EMPTY_BG;
         const fg = labelChars.has(i)
-            ? filled
-                ? contrastFgForBg(fillColor)
-                : fillColor
+            ? CONTEXT_USAGE_LABEL_FG
             : filled
                 ? fillColor
                 : CONTEXT_USAGE_EMPTY_FG;
@@ -193,13 +191,19 @@ export function formatContextUsageBar(percent, contextWindow, autoCompactEnabled
 `;
 
 function insertHelper(source) {
-  if (source.includes("export function formatContextUsageBar") && source.includes("export function getContextUsageGradientRgb")) return source;
   const anchors = ["export function formatCwdForFooter", "export class FooterComponent"];
-  for (const anchor of anchors) {
-    const index = source.indexOf(anchor);
-    if (index !== -1) return `${source.slice(0, index)}${helperSource}${source.slice(index)}`;
+  const anchorIndex = anchors
+    .map((anchor) => source.indexOf(anchor))
+    .filter((index) => index !== -1)
+    .sort((a, b) => a - b)[0];
+  if (anchorIndex === undefined) throw new Error("footer helpers could not be inserted because no stable anchor was found");
+
+  if (source.includes("export function formatContextUsageBar") && source.includes("export function getContextUsageGradientRgb")) {
+    const helperIndex = source.indexOf("const CONTEXT_USAGE_BAR_WIDTH = 14;");
+    if (helperIndex === -1 || helperIndex >= anchorIndex) throw new Error("existing footer helpers could not be located");
+    return `${source.slice(0, helperIndex)}${helperSource}${source.slice(anchorIndex)}`;
   }
-  throw new Error("footer helpers could not be inserted because no stable anchor was found");
+  return `${source.slice(0, anchorIndex)}${helperSource}${source.slice(anchorIndex)}`;
 }
 
 function patchContextPercentCalculation(source) {
@@ -251,8 +255,12 @@ async function smokeTest(footerPath) {
   const mod = await import(`${pathToFileURL(footerPath).href}?pi-context-bar-smoke=${Date.now()}`);
   if (typeof mod.formatContextUsageBar !== "function") throw new Error("formatContextUsageBar export missing after patch");
   if (typeof mod.getContextUsageGradientRgb !== "function") throw new Error("getContextUsageGradientRgb export missing after patch");
-  const yellow = mod.getContextUsageGradientRgb(25);
-  if (JSON.stringify(yellow) !== JSON.stringify({ r: 255, g: 220, b: 0 })) throw new Error("gradient smoke check failed");
+  const violet = mod.getContextUsageGradientRgb(0);
+  const red = mod.getContextUsageGradientRgb(100);
+  if (JSON.stringify(violet) !== JSON.stringify({ r: 148, g: 0, b: 211 }) || JSON.stringify(red) !== JSON.stringify({ r: 255, g: 0, b: 0 })) throw new Error("gradient smoke check failed");
+  const beforeFirstStep = [...mod.formatContextUsageBar(6.66, 272000, true).matchAll(/\x1b\[48;2;(\d+);(\d+);(\d+)m/g)].some((match) => match.slice(1).join(",") !== "48,48,48");
+  const finalStepBackground = [...mod.formatContextUsageBar(93.34, 272000, true).matchAll(/\x1b\[48;2;(\d+);(\d+);(\d+)m/g)].at(-1)?.slice(1).join(",");
+  if (beforeFirstStep || finalStepBackground !== "255,0,0") throw new Error("bar step smoke check failed");
   const plain = mod.formatContextUsageBar(14.6, 272000, true).replace(/\x1b\[[0-9;]*m/g, "");
   if (!plain.includes("15%") || !plain.includes("272k") || plain.includes("15.0%")) throw new Error("bar formatting smoke check failed");
 }

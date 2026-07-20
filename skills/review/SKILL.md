@@ -41,7 +41,7 @@ Der User tippt das natürlich ein — interpretiere flexibel:
 
 | Input (Beispiele) | Kommando |
 |---|---|
-| `uncommitted`, `working tree`, `staged`, leer | `git diff` + `git diff --staged` |
+| `uncommitted`, `working tree`, `staged`, leer | `git diff` + `git diff --staged`; zusätzlich `git status --short` prüfen und ungetrackte Dateien via `git ls-files --others --exclude-standard` vollständig lesen |
 | `branch`, `feature branch`, `vs main` | `git diff $(git merge-base HEAD main)..HEAD` (oder `master` falls kein `main`) |
 | `letzten N commits`, `last N` | `git log -n N -p` |
 | `seit DD.MM.YYYY`, `since DD.MM.YYYY` | `git log --since="YYYY-MM-DD" -p` |

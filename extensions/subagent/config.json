@@ -1,0 +1,22 @@
+{
+	"companionSuggestions": {
+		"packages": {
+			"pi-intercom": {
+				"dismissed": {
+					"workspaces": [
+						"/Users/beruflich/git"
+					],
+					"user": true
+				}
+			},
+			"pi-prompt-template-model": {
+				"dismissed": {
+					"workspaces": [
+						"/Users/beruflich/git"
+					],
+					"user": true
+				}
+			}
+		}
+	}
+}

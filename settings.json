@@ -1,22 +1,32 @@
 {
-  "lastChangelogVersion": "0.79.10",
+  "lastChangelogVersion": "0.80.10",
   "terminal": {
     "showTerminalProgress": true
   },
+  "images": {
+    "autoResize": false
+  },
   "theme": "material-ui-darker-orange",
-  "defaultProvider": "coding-sipgate-ai",
-  "defaultModel": "zai-org/GLM-5.2-FP8",
-  "defaultThinkingLevel": "medium",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "low",
   "enabledModels": [
-    "openai-codex/gpt-5.5",
     "anthropic/claude-opus-4-8",
-    "claude-bridge/claude-opus-4-8",
-    "coding-sipgate-ai/zai-org/GLM-5.2-FP8"
+    "anthropic/claude-fable-5",
+    "openai-codex/gpt-5.6-sol"
   ],
   "hideThinkingBlock": true,
   "treeFilterMode": "user-only",
   "packages": [
-    "npm:pi-subagents",
+    {
+      "source": "npm:pi-subagents",
+      "prompts": [
+        "!prompts/review-loop.md",
+        "!prompts/parallel-review.md",
+        "!prompts/parallel-handoff-plan.md",
+        "!prompts/parallel-cleanup.md"
+      ]
+    },
     "npm:pi-mcp-adapter",
     "npm:pi-web-access",
     "npm:@juicesharp/rpiv-todo",

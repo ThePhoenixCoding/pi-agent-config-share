@@ -23,7 +23,9 @@ Keine Jira-Suche verwenden.
 
 ## 2. Vorbedingung prüfen
 
-Vor Jira-Zugriff prüfen, ob im Session-Kontext erkennbare Arbeit zum Issue existiert (Code-Änderungen, Diskussion, Tool-Calls mit Key-Bezug). Ein unmittelbar zuvor per `/jira-create` angelegtes Ticket zählt als erkennbare Arbeit mit Key-Bezug. Falls nicht: kurz informieren und nur nach expliziter Bestätigung fortfahren.
+Wenn der User in den Argumenten genau einen Issue-Key angibt, gilt dieser als ausdrücklich bestätigt: ohne Rückfrage akzeptieren und direkt mit dem Jira-Zugriff fortfahren. Insbesondere nicht zusätzlich fragen, ob der Key richtig ist oder ob die Session-Arbeit zu diesem Issue gehört.
+
+Nur wenn der Issue-Key aus dem lokalen Kontext abgeleitet wurde, vor Jira-Zugriff prüfen, ob im Session-Kontext erkennbare Arbeit zum Issue existiert (Code-Änderungen, Diskussion, Tool-Calls mit Key-Bezug). Ein unmittelbar zuvor per `/jira-create` angelegtes Ticket zählt als erkennbare Arbeit mit Key-Bezug. Falls nicht: kurz informieren und nur nach expliziter Bestätigung fortfahren.
 
 ## 3. Issue schlank lesen
 

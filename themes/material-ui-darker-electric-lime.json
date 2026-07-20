@@ -82,6 +82,7 @@
     "thinkingMedium": "#7b8f28",
     "thinkingHigh": "#85a018",
     "thinkingXhigh": "#8dae09",
+    "thinkingMax": "#93b800",
     "bashMode": "accent"
   },
   "export": {
